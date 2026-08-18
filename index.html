@@ -23,7 +23,7 @@
             box-shadow: 0 0 25px rgba(244, 114, 182, 0.25), inset 0 0 15px rgba(251, 191, 36, 0.15);
         }
 
-        /* Floating heart animation for the heading heart */
+        /* Floating heart animation for heading heart */
         @keyframes float {
             0% { transform: translateY(0px) rotate(0deg); opacity: 0.8; }
             50% { transform: translateY(-20px) rotate(10deg); opacity: 0.4; }
@@ -59,7 +59,7 @@
 
     <!-- Background Audio Element -->
     <audio id="bgMusic" loop preload="auto">
-        <!-- Make sure 'golden-brown.mp3' is placed in the same folder as this HTML file -->
+        <!-- Ensure 'golden-brown.mp3' is placed in the same folder as this HTML file -->
         <source src="golden-brown.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
@@ -199,7 +199,7 @@
             createHeart(touch.clientX, touch.clientY);
         }, { passive: true });
 
-        // --- Scroll-Triggered Audio Playback ---
+        // --- Scroll-Triggered Golden Brown Audio Playback ---
         let musicPlayed = false;
 
         function fadeInAudio(audio, duration = 2500) {
@@ -219,11 +219,12 @@
                         }
                     }, interval);
                 }).catch(error => {
-                    console.log("Autoplay was blocked by browser policy until direct interaction:", error);
+                    console.log("Autoplay was blocked by browser policy until user interaction:", error);
                 });
             }
         }
 
+        // IntersectionObserver triggers music fade-in when the love letter scrolls into view
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !musicPlayed) {
@@ -232,12 +233,12 @@
                 }
             });
         }, {
-            threshold: 0.25
+            threshold: 0.25 // Triggers when 25% of the love section is visible
         });
 
         observer.observe(loveBox);
 
-        // --- Romantic Mini Game Engine ---
+        // --- Mini Game Engine ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const overlay = document.getElementById('gameStatusOverlay');
@@ -348,9 +349,6 @@
             gameTimerInterval = setInterval(() => {
                 if (gameActive) {
                     gameTime++;
-                    if (gameTime >= TARGET_TIME) {
-                        // Game Won condition reached
-                    }
                 }
             }, 1000);
 
@@ -378,7 +376,7 @@
 
         function drawPalace(x) {
             // Draw Black & Pink Palace
-            ctx.fillStyle = '#0f051d'; // Dark black-purple base
+            ctx.fillStyle = '#0f051d';
             ctx.fillRect(x, groundY - 110, 100, 110);
 
             // Towers
@@ -419,7 +417,7 @@
             ctx.arc(char.x + char.width/2, char.y - 6, 8, 0, Math.PI * 2);
             ctx.fill();
 
-            // Crown / Hair distinction
+            // Hair/Crown Accent
             ctx.fillStyle = name === 'Nandini' ? '#f43f5e' : '#0284c7';
             ctx.fillRect(char.x + 2, char.y - 14, char.width - 4, 4);
 
@@ -431,8 +429,8 @@
         }
 
         function drawDragon(d) {
-            // Dragon Body
-            ctx.fillStyle = '#dc2626'; // Red dragon
+            // Red Dragon Body
+            ctx.fillStyle = '#dc2626';
             ctx.fillRect(d.x, d.y, d.width, d.height);
 
             // Wing
@@ -468,7 +466,7 @@
             // Clear Canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Sky & Stars background
+            // Sky background
             ctx.fillStyle = '#180720';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -478,7 +476,7 @@
             ctx.fillStyle = '#f43f5e';
             ctx.fillRect(0, groundY, canvas.width, 3); // Glowing pink ground line
 
-            // Display Timer & Goal
+            // Display Timer
             ctx.fillStyle = '#fbcfe8';
             ctx.font = '12px Montserrat';
             ctx.textAlign = 'left';
@@ -528,16 +526,16 @@
                 d.x -= d.speed;
                 drawDragon(d);
 
-                // Collision Detection
+                // Collision Detection with exact requested loss messages
                 if (checkCollision(abhinav, d)) {
                     abhinav.alive = false;
-                    endGame("Abhinav died now Nandini should be strong and move forward");
+                    endGame("abhinav died now nandini should be strong and move forward");
                     return;
                 }
 
                 if (checkCollision(nandini, d)) {
                     nandini.alive = false;
-                    endGame("Nandini died now Abhinav should be strong and move forward");
+                    endGame("nandini died now abhinav should be strong and move forward");
                     return;
                 }
 
