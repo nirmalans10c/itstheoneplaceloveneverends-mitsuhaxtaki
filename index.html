@@ -59,7 +59,7 @@
 
     <!-- Background Audio Element -->
     <audio id="bgMusic" loop preload="auto">
-        <!-- Ensure 'golden-brown.mp3' is placed in the exact same folder as this HTML file -->
+        <!-- Ensure 'golden-brown.mp3' is placed in the exact same directory as this HTML file -->
         <source src="golden-brown.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
@@ -131,7 +131,7 @@
             </div>
         </section>
 
-        <!-- Dramatic Love Letter Section (With Heart Pop & Audio Trigger) -->
+        <!-- Dramatic Love Letter Section (Triggers Golden Brown Audio on Scroll) -->
         <section id="loveBox" class="w-full bg-rose-950/20 border border-rose-800/40 rounded-3xl p-8 md:p-12 backdrop-blur-sm relative overflow-hidden shadow-2xl mb-12 cursor-pointer select-none">
             <div class="absolute -top-10 -right-10 text-rose-900/20 text-9xl font-cursive pointer-events-none">Love</div>
             
@@ -161,7 +161,7 @@
         <p>Created with eternal devotion by Abhinav • Forever & Always</p>
     </footer>
 
-    <!-- JavaScript -->
+    <!-- JavaScript Engine -->
     <script>
         const loveBox = document.getElementById('loveBox');
         const bgMusic = document.getElementById('bgMusic');
@@ -199,11 +199,9 @@
             createHeart(touch.clientX, touch.clientY);
         }, { passive: true });
 
-        // --- Fixed & Optimized Audio Playback System ---
+        // --- Precise Scroll-Triggered Audio Playback ---
         let musicPlayed = false;
-        let userInteracted = false;
 
-        // Smoothly fade in audio volume
         function fadeInAudio(audio, duration = 2500) {
             audio.volume = 0;
             const playPromise = audio.play();
@@ -221,43 +219,39 @@
                         }
                     }, interval);
                 }).catch(error => {
-                    console.log("Audio play blocked by browser:", error);
-                    // Reset flag so it can retry safely after next interaction
-                    musicPlayed = false; 
+                    console.log("Autoplay paused by browser policy. Will play upon user interaction:", error);
+                    // Reset flag so next scroll or click attempts playback
+                    musicPlayed = false;
                 });
             }
         }
 
-        // Function to trigger music safely
-        function checkAndPlayMusic() {
-            if (!musicPlayed) {
-                const rect = loveBox.getBoundingClientRect();
-                // Check if the love letter is in view
-                if (rect.top < window.innerHeight && rect.bottom >= 0) {
-                    musicPlayed = true;
-                    fadeInAudio(bgMusic);
-                }
+        function checkAndPlayOnScroll() {
+            if (musicPlayed) return;
+
+            const rect = loveBox.getBoundingClientRect();
+            const isInView = rect.top < (window.innerHeight || document.documentElement.clientHeight) * 0.8 && rect.bottom >= 0;
+
+            if (isInView) {
+                musicPlayed = true;
+                fadeInAudio(bgMusic, 2500);
             }
         }
 
-        // Global user interaction listener to unlock browser audio restrictions
-        function handleUserInteraction() {
-            userInteracted = true;
-            checkAndPlayMusic();
-        }
+        // Global interaction listeners to unlock restricted browser audio
+        window.addEventListener('click', checkAndPlayOnScroll, { passive: true });
+        window.addEventListener('touchstart', checkAndPlayOnScroll, { passive: true });
+        window.addEventListener('scroll', checkAndPlayOnScroll, { passive: true });
 
-        window.addEventListener('click', handleUserInteraction, { passive: true });
-        window.addEventListener('touchstart', handleUserInteraction, { passive: true });
-
-        // IntersectionObserver to detect scroll position
+        // IntersectionObserver for seamless trigger on scroll into letter content
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    checkAndPlayMusic();
+                    checkAndPlayOnScroll();
                 }
             });
         }, {
-            threshold: 0.2
+            threshold: 0.15 // Triggers when 15% of the love letter content enters viewport
         });
 
         observer.observe(loveBox);
