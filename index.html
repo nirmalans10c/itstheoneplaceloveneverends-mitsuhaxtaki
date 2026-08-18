@@ -59,7 +59,7 @@
 
     <!-- Background Audio Element -->
     <audio id="bgMusic" loop preload="auto">
-        <!-- Ensure 'golden-brown.mp3' is placed in the same folder as this HTML file -->
+        <!-- Ensure 'golden-brown.mp3' is placed in the exact same folder as this HTML file -->
         <source src="golden-brown.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
@@ -161,7 +161,7 @@
         <p>Created with eternal devotion by Abhinav • Forever & Always</p>
     </footer>
 
-    <!-- JavaScript For Heart Pop Effect, Scroll Audio & Mini Game -->
+    <!-- JavaScript -->
     <script>
         const loveBox = document.getElementById('loveBox');
         const bgMusic = document.getElementById('bgMusic');
@@ -199,9 +199,11 @@
             createHeart(touch.clientX, touch.clientY);
         }, { passive: true });
 
-        // --- Scroll-Triggered Golden Brown Audio Playback ---
+        // --- Fixed & Optimized Audio Playback System ---
         let musicPlayed = false;
+        let userInteracted = false;
 
+        // Smoothly fade in audio volume
         function fadeInAudio(audio, duration = 2500) {
             audio.volume = 0;
             const playPromise = audio.play();
@@ -219,21 +221,43 @@
                         }
                     }, interval);
                 }).catch(error => {
-                    console.log("Autoplay was blocked by browser policy until user interaction:", error);
+                    console.log("Audio play blocked by browser:", error);
+                    // Reset flag so it can retry safely after next interaction
+                    musicPlayed = false; 
                 });
             }
         }
 
-        // IntersectionObserver triggers music fade-in when the love letter scrolls into view
+        // Function to trigger music safely
+        function checkAndPlayMusic() {
+            if (!musicPlayed) {
+                const rect = loveBox.getBoundingClientRect();
+                // Check if the love letter is in view
+                if (rect.top < window.innerHeight && rect.bottom >= 0) {
+                    musicPlayed = true;
+                    fadeInAudio(bgMusic);
+                }
+            }
+        }
+
+        // Global user interaction listener to unlock browser audio restrictions
+        function handleUserInteraction() {
+            userInteracted = true;
+            checkAndPlayMusic();
+        }
+
+        window.addEventListener('click', handleUserInteraction, { passive: true });
+        window.addEventListener('touchstart', handleUserInteraction, { passive: true });
+
+        // IntersectionObserver to detect scroll position
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting && !musicPlayed) {
-                    musicPlayed = true;
-                    fadeInAudio(bgMusic, 2500);
+                if (entry.isIntersecting) {
+                    checkAndPlayMusic();
                 }
             });
         }, {
-            threshold: 0.25 // Triggers when 25% of the love section is visible
+            threshold: 0.2
         });
 
         observer.observe(loveBox);
@@ -264,7 +288,7 @@
             vy: 0,
             isJumping: false,
             alive: true,
-            color: '#38bdf8' // Blue accent
+            color: '#38bdf8'
         };
 
         let nandini = {
@@ -275,7 +299,7 @@
             vy: 0,
             isJumping: false,
             alive: true,
-            color: '#f43f5e' // Pink accent
+            color: '#f43f5e'
         };
 
         let dragons = [];
@@ -375,15 +399,12 @@
         }
 
         function drawPalace(x) {
-            // Draw Black & Pink Palace
             ctx.fillStyle = '#0f051d';
             ctx.fillRect(x, groundY - 110, 100, 110);
 
-            // Towers
             ctx.fillRect(x - 20, groundY - 140, 30, 140);
             ctx.fillRect(x + 90, groundY - 140, 30, 140);
 
-            // Pink Domes
             ctx.fillStyle = '#ec4899';
             ctx.beginPath();
             ctx.arc(x - 5, groundY - 140, 18, Math.PI, 0);
@@ -397,7 +418,6 @@
             ctx.arc(x + 50, groundY - 110, 30, Math.PI, 0);
             ctx.fill();
 
-            // Glowing Pink Door & Windows
             ctx.fillStyle = '#f472b6';
             ctx.fillRect(x + 38, groundY - 45, 24, 45);
             ctx.fillRect(x - 12, groundY - 100, 14, 25);
@@ -407,21 +427,17 @@
         function drawCharacter(char, name, color) {
             if (!char.alive) return;
 
-            // Body
             ctx.fillStyle = color;
             ctx.fillRect(char.x, char.y, char.width, char.height);
 
-            // Head
             ctx.fillStyle = '#fbcfe8';
             ctx.beginPath();
             ctx.arc(char.x + char.width/2, char.y - 6, 8, 0, Math.PI * 2);
             ctx.fill();
 
-            // Hair/Crown Accent
             ctx.fillStyle = name === 'Nandini' ? '#f43f5e' : '#0284c7';
             ctx.fillRect(char.x + 2, char.y - 14, char.width - 4, 4);
 
-            // Label
             ctx.fillStyle = '#fce7f3';
             ctx.font = '10px Montserrat';
             ctx.textAlign = 'center';
@@ -429,11 +445,9 @@
         }
 
         function drawDragon(d) {
-            // Red Dragon Body
             ctx.fillStyle = '#dc2626';
             ctx.fillRect(d.x, d.y, d.width, d.height);
 
-            // Wing
             ctx.fillStyle = '#991b1b';
             ctx.beginPath();
             ctx.moveTo(d.x + 15, d.y);
@@ -441,7 +455,6 @@
             ctx.lineTo(d.x + 22, d.y + 5);
             ctx.fill();
 
-            // Firing breath animation
             d.fireFrame = (d.fireFrame + 1) % 20;
             ctx.fillStyle = d.fireFrame < 10 ? '#f97316' : '#eab308';
             ctx.beginPath();
@@ -463,26 +476,21 @@
         }
 
         function gameLoop() {
-            // Clear Canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Sky background
             ctx.fillStyle = '#180720';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Ground
             ctx.fillStyle = '#3b0764';
             ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
             ctx.fillStyle = '#f43f5e';
-            ctx.fillRect(0, groundY, canvas.width, 3); // Glowing pink ground line
+            ctx.fillRect(0, groundY, canvas.width, 3);
 
-            // Display Timer
             ctx.fillStyle = '#fbcfe8';
             ctx.font = '12px Montserrat';
             ctx.textAlign = 'left';
             ctx.fillText(`Time: ${gameTime}s / ${TARGET_TIME}s`, 15, 25);
 
-            // Handle Palace approaching at 25s
             if (gameTime >= TARGET_TIME) {
                 if (palaceX > 480) palaceX -= 1.5;
                 drawPalace(palaceX);
@@ -495,7 +503,6 @@
                 }
             }
 
-            // Update & Draw Characters
             [abhinav, nandini].forEach(char => {
                 if (char.alive) {
                     char.y += char.vy;
@@ -512,7 +519,6 @@
             drawCharacter(abhinav, 'Abhinav', abhinav.color);
             drawCharacter(nandini, 'Nandini', nandini.color);
 
-            // Spawn & Update Dragons
             if (gameTime < TARGET_TIME) {
                 dragonSpawnTimer++;
                 if (dragonSpawnTimer > 90 + Math.random() * 40) {
@@ -526,7 +532,6 @@
                 d.x -= d.speed;
                 drawDragon(d);
 
-                // Collision Detection with exact requested loss messages
                 if (checkCollision(abhinav, d)) {
                     abhinav.alive = false;
                     endGame("abhinav died now nandini should be strong and move forward");
@@ -539,7 +544,6 @@
                     return;
                 }
 
-                // Remove offscreen dragons
                 if (d.x < -40) dragons.splice(i, 1);
             }
 
