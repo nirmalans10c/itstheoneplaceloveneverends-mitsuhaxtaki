@@ -57,6 +57,13 @@
 </head>
 <body class="font-sans-custom min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-pink-500 selection:text-white">
 
+    <!-- Background Audio Element -->
+    <audio id="bgMusic" loop preload="auto">
+        <!-- Make sure 'golden-brown.mp3' is placed in the same folder as this HTML file -->
+        <source src="golden-brown.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
     <!-- Romantic Header -->
     <header class="py-8 text-center border-b border-rose-900/40 bg-black/20 backdrop-blur-md sticky top-0 z-50">
         <h1 class="font-cursive text-5xl md:text-6xl text-rose-300 tracking-wide drop-shadow-md">
@@ -68,7 +75,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-6 py-12 flex-grow flex flex-col items-center">
+    <main class="max-w-4xl mx-auto px-6 py-12 flex-grow flex flex-col items-center w-full">
 
         <!-- Hero Title -->
         <section class="text-center mb-16 relative">
@@ -80,7 +87,7 @@
         </section>
 
         <!-- Profile Photos Grid -->
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 w-full max-w-2xl mb-20">
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 w-full max-w-2xl mb-16">
             
             <!-- Nandini's Instagram Link & Card -->
             <a href="https://www.instagram.com/starr_0.0_?igsh=ZnF5ZTk3bWxiNWY4" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center group cursor-pointer">
@@ -102,7 +109,29 @@
 
         </section>
 
-        <!-- Dramatic Love Letter Section (With Heart Pop Interaction) -->
+        <!-- Romantic Mini-Game Section -->
+        <section class="w-full max-w-2xl mb-20 flex flex-col items-center">
+            <div class="text-center mb-4">
+                <span class="text-rose-400 text-xs font-semibold tracking-widest uppercase block">Interactive Adventure</span>
+                <h3 class="font-serif-custom text-2xl md:text-3xl text-rose-100">Help Abhinav & Nandini Reach Home</h3>
+                <p class="text-xs text-rose-300/70 mt-1">Tap Left side to make Abhinav jump • Tap Right side to make Nandini jump</p>
+            </div>
+
+            <div class="relative w-full rounded-2xl overflow-hidden gold-border bg-black/60 shadow-2xl">
+                <canvas id="gameCanvas" width="650" height="300" class="w-full h-auto block cursor-pointer touch-none"></canvas>
+                
+                <!-- Game Status Overlay -->
+                <div id="gameStatusOverlay" class="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                    <h4 id="statusTitle" class="font-serif-custom text-xl md:text-2xl text-pink-200 mb-2">Together Against The Flame</h4>
+                    <p id="statusDesc" class="text-sm text-rose-200/80 mb-6 max-w-md">Dodge the firing dragons for 25 seconds to guide Abhinav & Nandini safely to their Black & Pink Palace.</p>
+                    <button id="startGameBtn" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-medium rounded-full shadow-lg transition transform hover:scale-105 active:scale-95 text-sm">
+                        Start Adventure
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dramatic Love Letter Section (With Heart Pop & Audio Trigger) -->
         <section id="loveBox" class="w-full bg-rose-950/20 border border-rose-800/40 rounded-3xl p-8 md:p-12 backdrop-blur-sm relative overflow-hidden shadow-2xl mb-12 cursor-pointer select-none">
             <div class="absolute -top-10 -right-10 text-rose-900/20 text-9xl font-cursive pointer-events-none">Love</div>
             
@@ -132,10 +161,12 @@
         <p>Created with eternal devotion by Abhinav • Forever & Always</p>
     </footer>
 
-    <!-- JavaScript For Heart Pop Effect -->
+    <!-- JavaScript For Heart Pop Effect, Scroll Audio & Mini Game -->
     <script>
         const loveBox = document.getElementById('loveBox');
+        const bgMusic = document.getElementById('bgMusic');
 
+        // --- Interactive Click/Touch Heart Pop Effect ---
         function createHeart(x, y) {
             const rect = loveBox.getBoundingClientRect();
             const posX = x - rect.left;
@@ -147,7 +178,6 @@
             heart.style.left = `${posX}px`;
             heart.style.top = `${posY}px`;
 
-            // Randomize trajectory slightly for organic effect
             const randomX = (Math.random() - 0.5) * 60;
             const randomRotate = (Math.random() - 0.5) * 40;
             heart.style.setProperty('--tw-x', `${randomX}px`);
@@ -160,7 +190,6 @@
             }, 1200);
         }
 
-        // Trigger on Mouse Click / Touch
         loveBox.addEventListener('click', (e) => {
             createHeart(e.clientX, e.clientY);
         });
@@ -169,6 +198,367 @@
             const touch = e.touches[0];
             createHeart(touch.clientX, touch.clientY);
         }, { passive: true });
+
+        // --- Scroll-Triggered Audio Playback ---
+        let musicPlayed = false;
+
+        function fadeInAudio(audio, duration = 2500) {
+            audio.volume = 0;
+            const playPromise = audio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    let step = 0.05;
+                    let interval = duration / (1 / step);
+                    let fade = setInterval(() => {
+                        if (audio.volume + step < 1) {
+                            audio.volume += step;
+                        } else {
+                            audio.volume = 1;
+                            clearInterval(fade);
+                        }
+                    }, interval);
+                }).catch(error => {
+                    console.log("Autoplay was blocked by browser policy until direct interaction:", error);
+                });
+            }
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !musicPlayed) {
+                    musicPlayed = true;
+                    fadeInAudio(bgMusic, 2500);
+                }
+            });
+        }, {
+            threshold: 0.25
+        });
+
+        observer.observe(loveBox);
+
+        // --- Romantic Mini Game Engine ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('gameStatusOverlay');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusDesc = document.getElementById('statusDesc');
+        const startBtn = document.getElementById('startGameBtn');
+
+        const TARGET_TIME = 25; // seconds needed to reach palace
+        let gameActive = false;
+        let gameTime = 0;
+        let gameTimerInterval = null;
+        let animationFrameId = null;
+        let palaceX = 650;
+
+        const groundY = 240;
+        const gravity = 0.6;
+
+        let abhinav = {
+            x: 90,
+            y: groundY - 35,
+            width: 24,
+            height: 35,
+            vy: 0,
+            isJumping: false,
+            alive: true,
+            color: '#38bdf8' // Blue accent
+        };
+
+        let nandini = {
+            x: 130,
+            y: groundY - 35,
+            width: 24,
+            height: 35,
+            vy: 0,
+            isJumping: false,
+            alive: true,
+            color: '#f43f5e' // Pink accent
+        };
+
+        let dragons = [];
+        let dragonSpawnTimer = 0;
+
+        function jumpAbhinav() {
+            if (gameActive && abhinav.alive && !abhinav.isJumping) {
+                abhinav.vy = -11.5;
+                abhinav.isJumping = true;
+            }
+        }
+
+        function jumpNandini() {
+            if (gameActive && nandini.alive && !nandini.isJumping) {
+                nandini.vy = -11.5;
+                nandini.isJumping = true;
+            }
+        }
+
+        // Tap/Click controls (Left side = Abhinav, Right side = Nandini)
+        canvas.addEventListener('pointerdown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            if (clickX < rect.width / 2) {
+                jumpAbhinav();
+            } else {
+                jumpNandini();
+            }
+        });
+
+        // Keyboard controls ('A' or Left Arrow = Abhinav, 'L' or Right Arrow = Nandini)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') jumpAbhinav();
+            if (e.key === 'l' || e.key === 'L' || e.key === 'ArrowRight') jumpNandini();
+        });
+
+        function spawnDragon() {
+            dragons.push({
+                x: canvas.width + 20,
+                y: groundY - 25,
+                width: 30,
+                height: 25,
+                speed: 3.8 + Math.random() * 1.5,
+                fireFrame: 0
+            });
+        }
+
+        function resetGame() {
+            gameTime = 0;
+            palaceX = canvas.width + 50;
+            dragonSpawnTimer = 0;
+            dragons = [];
+
+            abhinav.y = groundY - abhinav.height;
+            abhinav.vy = 0;
+            abhinav.isJumping = false;
+            abhinav.alive = true;
+
+            nandini.y = groundY - nandini.height;
+            nandini.vy = 0;
+            nandini.isJumping = false;
+            nandini.alive = true;
+        }
+
+        function startGame() {
+            resetGame();
+            gameActive = true;
+            overlay.classList.add('hidden');
+
+            if (gameTimerInterval) clearInterval(gameTimerInterval);
+            gameTimerInterval = setInterval(() => {
+                if (gameActive) {
+                    gameTime++;
+                    if (gameTime >= TARGET_TIME) {
+                        // Game Won condition reached
+                    }
+                }
+            }, 1000);
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            gameLoop();
+        }
+
+        function endGame(message) {
+            gameActive = false;
+            clearInterval(gameTimerInterval);
+            overlay.classList.remove('hidden');
+            statusTitle.innerText = "Journey Pause";
+            statusDesc.innerText = message;
+            startBtn.innerText = "Try Again";
+        }
+
+        function triggerVictory() {
+            gameActive = false;
+            clearInterval(gameTimerInterval);
+            overlay.classList.remove('hidden');
+            statusTitle.innerHTML = "Congratulations! <span class='text-rose-400 text-3xl block mt-1'>♥</span>";
+            statusDesc.innerText = "Congratulations for helping us get together and home!";
+            startBtn.innerText = "Play Again";
+        }
+
+        function drawPalace(x) {
+            // Draw Black & Pink Palace
+            ctx.fillStyle = '#0f051d'; // Dark black-purple base
+            ctx.fillRect(x, groundY - 110, 100, 110);
+
+            // Towers
+            ctx.fillRect(x - 20, groundY - 140, 30, 140);
+            ctx.fillRect(x + 90, groundY - 140, 30, 140);
+
+            // Pink Domes
+            ctx.fillStyle = '#ec4899';
+            ctx.beginPath();
+            ctx.arc(x - 5, groundY - 140, 18, Math.PI, 0);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(x + 105, groundY - 140, 18, Math.PI, 0);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(x + 50, groundY - 110, 30, Math.PI, 0);
+            ctx.fill();
+
+            // Glowing Pink Door & Windows
+            ctx.fillStyle = '#f472b6';
+            ctx.fillRect(x + 38, groundY - 45, 24, 45);
+            ctx.fillRect(x - 12, groundY - 100, 14, 25);
+            ctx.fillRect(x + 98, groundY - 100, 14, 25);
+        }
+
+        function drawCharacter(char, name, color) {
+            if (!char.alive) return;
+
+            // Body
+            ctx.fillStyle = color;
+            ctx.fillRect(char.x, char.y, char.width, char.height);
+
+            // Head
+            ctx.fillStyle = '#fbcfe8';
+            ctx.beginPath();
+            ctx.arc(char.x + char.width/2, char.y - 6, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Crown / Hair distinction
+            ctx.fillStyle = name === 'Nandini' ? '#f43f5e' : '#0284c7';
+            ctx.fillRect(char.x + 2, char.y - 14, char.width - 4, 4);
+
+            // Label
+            ctx.fillStyle = '#fce7f3';
+            ctx.font = '10px Montserrat';
+            ctx.textAlign = 'center';
+            ctx.fillText(name, char.x + char.width/2, char.y - 18);
+        }
+
+        function drawDragon(d) {
+            // Dragon Body
+            ctx.fillStyle = '#dc2626'; // Red dragon
+            ctx.fillRect(d.x, d.y, d.width, d.height);
+
+            // Wing
+            ctx.fillStyle = '#991b1b';
+            ctx.beginPath();
+            ctx.moveTo(d.x + 15, d.y);
+            ctx.lineTo(d.x + 5, d.y - 12);
+            ctx.lineTo(d.x + 22, d.y + 5);
+            ctx.fill();
+
+            // Firing breath animation
+            d.fireFrame = (d.fireFrame + 1) % 20;
+            ctx.fillStyle = d.fireFrame < 10 ? '#f97316' : '#eab308';
+            ctx.beginPath();
+            ctx.moveTo(d.x, d.y + 10);
+            ctx.lineTo(d.x - 14, d.y + 4);
+            ctx.lineTo(d.x - 14, d.y + 16);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function checkCollision(char, dragon) {
+            return (
+                char.alive &&
+                char.x < dragon.x + dragon.width &&
+                char.x + char.width > dragon.x &&
+                char.y < dragon.y + dragon.height &&
+                char.y + char.height > dragon.y
+            );
+        }
+
+        function gameLoop() {
+            // Clear Canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Sky & Stars background
+            ctx.fillStyle = '#180720';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Ground
+            ctx.fillStyle = '#3b0764';
+            ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+            ctx.fillStyle = '#f43f5e';
+            ctx.fillRect(0, groundY, canvas.width, 3); // Glowing pink ground line
+
+            // Display Timer & Goal
+            ctx.fillStyle = '#fbcfe8';
+            ctx.font = '12px Montserrat';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Time: ${gameTime}s / ${TARGET_TIME}s`, 15, 25);
+
+            // Handle Palace approaching at 25s
+            if (gameTime >= TARGET_TIME) {
+                if (palaceX > 480) palaceX -= 1.5;
+                drawPalace(palaceX);
+
+                if (palaceX <= 480) {
+                    drawCharacter(abhinav, 'Abhinav', abhinav.color);
+                    drawCharacter(nandini, 'Nandini', nandini.color);
+                    triggerVictory();
+                    return;
+                }
+            }
+
+            // Update & Draw Characters
+            [abhinav, nandini].forEach(char => {
+                if (char.alive) {
+                    char.y += char.vy;
+                    char.vy += gravity;
+
+                    if (char.y >= groundY - char.height) {
+                        char.y = groundY - char.height;
+                        char.vy = 0;
+                        char.isJumping = false;
+                    }
+                }
+            });
+
+            drawCharacter(abhinav, 'Abhinav', abhinav.color);
+            drawCharacter(nandini, 'Nandini', nandini.color);
+
+            // Spawn & Update Dragons
+            if (gameTime < TARGET_TIME) {
+                dragonSpawnTimer++;
+                if (dragonSpawnTimer > 90 + Math.random() * 40) {
+                    spawnDragon();
+                    dragonSpawnTimer = 0;
+                }
+            }
+
+            for (let i = dragons.length - 1; i >= 0; i--) {
+                let d = dragons[i];
+                d.x -= d.speed;
+                drawDragon(d);
+
+                // Collision Detection
+                if (checkCollision(abhinav, d)) {
+                    abhinav.alive = false;
+                    endGame("Abhinav died now Nandini should be strong and move forward");
+                    return;
+                }
+
+                if (checkCollision(nandini, d)) {
+                    nandini.alive = false;
+                    endGame("Nandini died now Abhinav should be strong and move forward");
+                    return;
+                }
+
+                // Remove offscreen dragons
+                if (d.x < -40) dragons.splice(i, 1);
+            }
+
+            if (gameActive) {
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        startBtn.addEventListener('click', startGame);
+
+        // Initial Canvas Draw
+        ctx.fillStyle = '#180720';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#3b0764';
+        ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+        drawCharacter(abhinav, 'Abhinav', abhinav.color);
+        drawCharacter(nandini, 'Nandini', nandini.color);
     </script>
 
 </body>
